@@ -1,4 +1,3 @@
-
 @extends('layout.app')
 
 @section('style')
@@ -100,51 +99,74 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('calculateBill') }}" method="GET">
-        <label for="month">MONTH</label>
-        <select name="month" id="month">
-            <option value="">Please Select</option>
-            <option value="January">January</option>
-            <option value="February">February</option>
-            <!-- Add options for other months -->
-        </select>
+    
 
-        <label for="building_type">BUILDING TYPE</label>
-        <select name="building_type" id="building_type">
-            <option value="">Please Select</option>
-            <option value="Residential">Residential</option>
-            <option value="Commercial">Commercial</option>
-        </select>
+    <div class="container mt-5">
 
-        <button type="submit">Search</button>
-    </form>
+        <form action="{{ route('calculateBill') }}" method="GET">
+            <label for="month">MONTH</label>
+            <select name="month" id="month">
+                <option value="">Please Select</option>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="Mac">Mac</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+                <!-- Add options for other months -->
+            </select>
+    
+            <label for="building_type">BUILDING TYPE</label>
+            <select name="building_type" id="building_type">
+                <option value="">Please Select</option>
+                <option value="Residential">Residential</option>
+                <option value="Commercial">Commercial</option>
+            </select>
+    
+            <button type="submit">Search</button>
+        </form>
+        
+        <h2>Bill Report for {{ $month }} - {{ $buildingType }}</h2>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Customer Name</th>
-                <th>Building Type</th>
-                <th>Month</th>
-                <th>Usability (kWh)</th>
-                <th>Bill Amount (RM)</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($bills as $index => $bill)
+        <table class="table table-bordered">
+            <thead>
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $bill->customer_name }}</td>
-                    <td>{{ ucfirst($bill->building_type) }}</td>
-                    <td>{{ $bill->month }}</td>
-                    <td>{{ $bill->usability }}</td>
-                    <td>RM{{ number_format($bill->bill, 2) }}</td>
+                    <th>Customer Name</th>
+                    <th>Building Type</th>
+                    <th>Month</th>
+                    <th>Usability (kWh)</th>
+                    <th>Total Bill (RM)</th>
+                    <th>Breakdown</th>
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="6">No bills found for the selected criteria.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($reportData as $data)
+                    <tr>
+                        <td>{{ $data['customer_name'] }}</td>
+                        <td>{{ ucfirst($data['building_type']) }}</td>
+                        <td>{{ $data['month'] }}</td>
+                        <td>{{ $data['usability'] }}</td>
+                        <td>RM{{ number_format($data['total_bill'], 2) }}</td>
+                        <td>
+                            <ul>
+                                @foreach ($data['breakdown'] as $breakdown)
+                                    <li>
+                                        {{ $breakdown['category'] }}: {{ $breakdown['usage'] }} kWh x
+                                        RM{{ number_format($breakdown['rate'], 2) }}/kWh =
+                                        RM{{ number_format($breakdown['cost'], 2) }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 @endsection

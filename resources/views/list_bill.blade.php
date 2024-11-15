@@ -160,6 +160,8 @@
             <a href="{{ route('listBill') }}" class="btn btn-secondary">Reset</a>
         </form>
 
+        <a href="{{ route('form', ['action' => 'create']) }}" class="btn btn-success mb-3">Add New Bill</a>
+        
         <!-- Bill List Table -->
         <table class="table table-striped">
             <thead>

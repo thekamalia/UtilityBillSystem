@@ -23,7 +23,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ route('listBill') }}">Bill List</a>
+                        <a class="nav-link active" aria-current="page" href="{{ route('listBill') }}">List Bill</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('calculateBill') }}">Report</a>
@@ -33,15 +33,9 @@
         </div>
     </nav>
     <div class="d-flex flex-column flex-root">
-        <div class="d-flex flex-row flex-column-fluid page">
-            <div class="d-flex flex-column flex-row-fluid wrapper" id="kt_wrapper">
-                <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
-                    <div class="d-flex flex-column-fluid">
-                        <div class="container-fluid">
-                            @yield('content')
-                        </div>
-                    </div>
-                </div>
+        <div class="d-flex flex-column-fluid">
+            <div class="container-fluid">
+                @yield('content')
             </div>
         </div>
     </div>

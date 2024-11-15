@@ -113,36 +113,43 @@ class UtilityBillingController extends Controller
 
     public function reportCalculateBill(Request $request)
     {
-        // Get the input values for month and building type
         $month = $request->input('month');
         $buildingType = $request->input('building_type');
 
-        // Fetch bills that match the selected month and building type
         $bills = Bill::where('month', $month)
             ->where('building_type', $buildingType)
             ->get();
 
-        // Define tariff rates
         $tariffs = [
             'Residential' => [
-                ['threshold' => 200, 'rate' => 0.45],
-                ['threshold' => PHP_INT_MAX, 'rate' => 0.97], // Applies to remaining usage
+                ['category' => 'For the first 200 kWh (1 - 200 kWh)', 'threshold' => 200, 'rate' => 0.45],
+                ['category' => 'For the next kWh (200 kWh onwards)', 'threshold' => PHP_INT_MAX, 'rate' => 0.97],
             ],
             'Commercial' => [
-                ['threshold' => 200, 'rate' => 0.89],
-                ['threshold' => PHP_INT_MAX, 'rate' => 1.13],
+                ['category' => 'For the first 200 kWh (1 - 200 kWh)', 'threshold' => 200, 'rate' => 0.89],
+                ['category' => 'For the next kWh (300 kWh onwards)', 'threshold' => PHP_INT_MAX, 'rate' => 1.13],
             ],
         ];
 
-        // Calculate bill for each usage entry
+        $reportData = [];
+
         foreach ($bills as $bill) {
             $totalBill = 0;
             $remainingUsage = $bill->usability;
+            $billBreakdown = []; // To store each step of the calculation
 
-            // Apply the rates based on thresholds
             foreach ($tariffs[$buildingType] as $tariff) {
                 $applicableUsage = min($remainingUsage, $tariff['threshold']);
-                $totalBill += $applicableUsage * $tariff['rate'];
+                $cost = $applicableUsage * $tariff['rate'];
+                $totalBill += $cost;
+
+                $billBreakdown[] = [
+                    'category' => $tariff['category'],
+                    'usage' => $applicableUsage,
+                    'rate' => $tariff['rate'],
+                    'cost' => $cost,
+                ];
+
                 $remainingUsage -= $applicableUsage;
 
                 if ($remainingUsage <= 0) {
@@ -150,11 +157,19 @@ class UtilityBillingController extends Controller
                 }
             }
 
-            // Update the bill amount in the database
             $bill->bill = $totalBill;
             $bill->save();
+
+            $reportData[] = [
+                'customer_name' => $bill->customer_name,
+                'building_type' => $bill->building_type,
+                'month' => $bill->month,
+                'usability' => $bill->usability,
+                'total_bill' => $totalBill,
+                'breakdown' => $billBreakdown,
+            ];
         }
 
-        return view('report', compact('bills'));
+        return view('report', compact('reportData', 'month', 'buildingType'));
     }
 }

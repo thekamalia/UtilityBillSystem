@@ -12,12 +12,28 @@ class UtilityBillingController extends Controller
 {
     use ResponseTrait;
 
-    public function listBill()
+    public function listBill(Request $request)
     {
-        $bills = Bill::with('state')->get();
+        $query = Bill::with('state');
 
-        return view('list_bill', compact('bills'));
+        if ($request->filled('building_type')) {
+            $query->where('building_type', $request->building_type);
+        }
+
+        if ($request->filled('state_id')) {
+            $query->where('state_id', $request->state_id);
+        }
+
+        if ($request->filled('sort_by') && $request->filled('order')) {
+            $query->orderBy($request->sort_by, $request->order);
+        }
+
+        $bills = $query->get();
+        $states = State::all();
+
+        return view('list_bill', compact('bills', 'states'));
     }
+
 
     public function form($action, ?Bill $bill)
     {
@@ -93,5 +109,52 @@ class UtilityBillingController extends Controller
         $bill->delete();
 
         return redirect()->route('listBill')->with('success', 'Bill record deleted successfully!');
+    }
+
+    public function reportCalculateBill(Request $request)
+    {
+        // Get the input values for month and building type
+        $month = $request->input('month');
+        $buildingType = $request->input('building_type');
+
+        // Fetch bills that match the selected month and building type
+        $bills = Bill::where('month', $month)
+            ->where('building_type', $buildingType)
+            ->get();
+
+        // Define tariff rates
+        $tariffs = [
+            'Residential' => [
+                ['threshold' => 200, 'rate' => 0.45],
+                ['threshold' => PHP_INT_MAX, 'rate' => 0.97], // Applies to remaining usage
+            ],
+            'Commercial' => [
+                ['threshold' => 200, 'rate' => 0.89],
+                ['threshold' => PHP_INT_MAX, 'rate' => 1.13],
+            ],
+        ];
+
+        // Calculate bill for each usage entry
+        foreach ($bills as $bill) {
+            $totalBill = 0;
+            $remainingUsage = $bill->usability;
+
+            // Apply the rates based on thresholds
+            foreach ($tariffs[$buildingType] as $tariff) {
+                $applicableUsage = min($remainingUsage, $tariff['threshold']);
+                $totalBill += $applicableUsage * $tariff['rate'];
+                $remainingUsage -= $applicableUsage;
+
+                if ($remainingUsage <= 0) {
+                    break;
+                }
+            }
+
+            // Update the bill amount in the database
+            $bill->bill = $totalBill;
+            $bill->save();
+        }
+
+        return view('report', compact('bills'));
     }
 }

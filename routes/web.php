@@ -14,15 +14,8 @@ use App\Http\Controllers\UtilityBillingController;
 |
 */
 
-// Route::get('/sss', function () {
-//     return view('welcome');
-// });
-
-Route::get('test', function () {
-    return 'Test Route';
-});
-
 Route::get('list-bill', [UtilityBillingController::class, 'listBill'])->name('listBill');
 Route::get('form/{action}/{bill?}', [UtilityBillingController::class, 'form'])->name('form');
 Route::post('submit-form/{action}/{bill?}', [UtilityBillingController::class, 'billform'])->name('billform');
 Route::post('form/delete/{bill}', [UtilityBillingController::class, 'delete'])->name('delete');
+Route::get('calculate-bill-report', [UtilityBillingController::class, 'reportCalculateBill'])->name('calculateBill');

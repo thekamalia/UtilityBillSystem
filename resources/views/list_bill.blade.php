@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layout.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Bill List</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+@section('style')
     <style>
         /* Custom Styles for Better Design */
         body {
@@ -102,10 +96,9 @@
             }
         }
     </style>
-</head>
+@endsection
 
-<body>
-
+@section('content')
     <div class="bill-list-container">
         <h2>Bill List</h2>
 
@@ -120,8 +113,54 @@
             </div>
         @endif
 
-        <a href="{{ route('form', ['action' => 'create']) }}" class="btn btn-success mb-3">Add New Bill</a>
+        <!-- Filter and Sort Form -->
+        <form action="{{ route('listBill') }}" method="GET" class="mb-3">
+            <div class="form-group">
+                <label for="building_type">Building Type:</label>
+                <select name="building_type" id="building_type" class="form-control">
+                    <option value="">All</option>
+                    <option value="Residential" {{ request('building_type') == 'Residential' ? 'selected' : '' }}>
+                        Residential</option>
+                    <option value="Commercial" {{ request('building_type') == 'Commercial' ? 'selected' : '' }}>
+                        Commercial</option>
+                </select>
+            </div>
 
+            <div class="form-group">
+                <label for="state_id">State:</label>
+                <select name="state_id" id="state_id" class="form-control">
+                    <option value="">All States</option>
+                    @foreach ($states as $state)
+                        <option value="{{ $state->id }}" {{ request('state_id') == $state->id ? 'selected' : '' }}>
+                            {{ $state->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="sort_by">Sort By:</label>
+                <select name="sort_by" id="sort_by" class="form-control">
+                    <option value="building_type" {{ request('sort_by') == 'building_type' ? 'selected' : '' }}>Building
+                        Type</option>
+                    <option value="usability" {{ request('sort_by') == 'usability' ? 'selected' : '' }}>Usability
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="order">Order:</label>
+                <select name="order" id="order" class="form-control">
+                    <option value="asc" {{ request('order') == 'asc' ? 'selected' : '' }}>Ascending</option>
+                    <option value="desc" {{ request('order') == 'desc' ? 'selected' : '' }}>Descending</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="{{ route('listBill') }}" class="btn btn-secondary">Reset</a>
+        </form>
+
+        <!-- Bill List Table -->
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -156,13 +195,12 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8">No bills found.</td>
+                        <td colspan="7">No bills found.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
+
+
     </div>
-
-</body>
-
-</html>
+@endsection
